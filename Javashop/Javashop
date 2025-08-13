@@ -1,0 +1,352 @@
+Ignorer et passer au contenu
+Historique de chat
+
+Vous avez dit :
+cree ma boutique hebergement github 
+ChatGPT a dit :
+
+Réflexion durant 18s
+
+Analyse
+Toujours afficher les détails
+
+# This script creates a ready-to-deploy GitHub Pages storefront for a hosting business.
+# It packages everything into a zip so the user can upload it to GitHub.
+import os, json, zipfile, textwrap, pathlib
+
+root = "/mnt/data/boutique-hebergement-github-pages"
+os.makedirs(root, exist_ok=True)
+assets_dir = os.path.join(root, "assets")
+os.makedirs(assets_dir, exist_ok=True)
+
+# Basic files
+index_html = """<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mastaa Hosting — Boutique d’hébergement</title>
+  <meta name="description" content="Boutique d’hébergement: mutualisé, VPS, et dédiés. Paiement via Stripe/PayPal.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="assets/favicon.png">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <img src="assets/logo.svg" alt="Logo" class="logo">
+        <span class="brand-name">Mastaa Hosting</span>
+      </div>
+      <nav class="nav">
+        <a href="#offres">Offres</a>
+        <a href="#features">Avantages</a>
+        <a href="#faq">FAQ</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container hero-inner">
+      <h1>Hébergement rapide, simple, prêt en 1 minute</h1>
+      <p>Des plans mutualisés et VPS, support 24/7, protection DDoS et disponibilité 99,9%.</p>
+      <a class="cta" href="#offres">Voir les offres</a>
+    </div>
+  </section>
+
+  <main class="container">
+    <section id="offres" class="section">
+      <h2>Nos offres</h2>
+      <div class="filters">
+        <input type="search" id="search" placeholder="Rechercher (ex: VPS, stockage, bande passante)">
+        <select id="category">
+          <option value="">Toutes les catégories</option>
+          <option value="Mutualisé">Mutualisé</option>
+          <option value="VPS">VPS</option>
+          <option value="Dédié">Dédié</option>
+          <option value="Nom de domaine">Nom de domaine</option>
+        </select>
+        <select id="billing">
+          <option value="mensuel">Mensuel</option>
+          <option value="annuel">Annuel (-10%)</option>
+        </select>
+      </div>
+      <div id="grid" class="grid"></div>
+    </section>
+
+    <section id="features" class="section features">
+      <h2>Pourquoi nous choisir ?</h2>
+      <ul class="feature-list">
+        <li>✅ <strong>Dispo 99,9%</strong> et sauvegardes quotidiennes</li>
+        <li>✅ <strong>Protection DDoS</strong> incluse sur tous les plans</li>
+        <li>✅ <strong>Support 24/7</strong> par ticket et Discord</li>
+        <li>✅ <strong>Serveurs NVMe</strong> pour des performances au top</li>
+        <li>✅ <strong>Panneau Plesk/cPanel</strong> selon l’offre</li>
+      </ul>
+    </section>
+
+    <section id="faq" class="section faq">
+      <h2>FAQ</h2>
+      <details>
+        <summary>Comment se passe l’activation ?</summary>
+        <p>Après paiement, vous recevez un e‑mail avec vos accès (en général sous 1 minute). Pour les serveurs dédiés, le délai peut monter à 30 minutes.</p>
+      </details>
+      <details>
+        <summary>Puis‑je changer d’offre plus tard ?</summary>
+        <p>Oui, vous pouvez évoluer à tout moment. La facturation est ajustée automatiquement.</p>
+      </details>
+      <details>
+        <summary>Quels moyens de paiement acceptez‑vous ?</summary>
+        <p>Stripe (carte), PayPal et virement. Chaque fiche produit contient un lien de paiement direct.</p>
+      </details>
+    </section>
+
+    <section id="contact" class="section contact">
+      <h2>Contact</h2>
+      <p>Envoyez‑nous un e‑mail à <a href="mailto:contact@mastaa-hosting.example">contact@mastaa-hosting.example</a> ou rejoignez le Discord&nbsp;: <a href="https://discord.gg/zXqe9t9Y" target="_blank" rel="noopener">discord.gg/zXqe9t9Y</a></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <small>© <span id="year"></span> Mastaa Hosting — Tous droits réservés.</small>
+      <a href="legal.html">Mentions légales</a>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
+"""
+
+legal_html = """<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mentions légales — Mastaa Hosting</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <img src="assets/logo.svg" alt="Logo" class="logo">
+        <span class="brand-name">Mastaa Hosting</span>
+      </div>
+      <nav class="nav">
+        <a href="index.html#offres">Offres</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container section">
+    <h1>Mentions légales</h1>
+    <p>Cette page est un exemple. Remplacez par vos informations&nbsp;: dénomination, adresse, e‑mail, SIREN, hébergeur, etc.</p>
+  </main>
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <small>© <span id="year"></span> Mastaa Hosting — Tous droits réservés.</small>
+    </div>
+  </footer>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
+"""
+
+style_css = """*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;color:#0f172a;background:#0b1020}
+.container{max-width:1100px;margin:0 auto;padding:0 16px}
+.site-header{position:sticky;top:0;background:#0b1020bd;backdrop-filter:saturate(180%) blur(8px);border-bottom:1px solid #172554;z-index:10}
+.header-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+.brand{display:flex;gap:10px;align-items:center}.brand-name{font-weight:700;color:#c7d2fe}.logo{width:28px;height:28px}
+.nav a{color:#94a3b8;text-decoration:none;margin:0 8px}.nav a:hover{color:#fff}
+.hero{background:radial-gradient(1000px 400px at 20% -20%, #1d4ed8 10%,transparent 60%), radial-gradient(800px 300px at 90% 10%, #7c3aed 10%, transparent 60%);border-bottom:1px solid #172554}
+.hero-inner{padding:64px 0 56px;text-align:center}.hero h1{color:#e2e8f0;margin:0 0 10px;font-size:clamp(24px,4vw,40px)}.hero p{color:#cbd5e1;margin:0 0 20px}
+.cta{display:inline-block;background:#22c55e;color:#001b10;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700}
+.section{padding:40px 0}.section h2{color:#e2e8f0;margin-top:0}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.filters input,.filters select{background:#0f172a;border:1px solid #1e293b;color:#e2e8f0;border-radius:8px;padding:10px 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.card{background:#0f172a;border:1px solid #1e293b;border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.card .thumb{height:140px;background:linear-gradient(45deg,#1d4ed8,#9333ea);display:flex;align-items:center;justify-content:center;color:#e0e7ff;font-weight:700}
+.card .body{padding:14px;display:flex;flex-direction:column;gap:8px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:#111827;border:1px solid #374151;color:#cbd5e1;padding:4px 8px;border-radius:999px;font-size:12px}
+.price{font-size:22px;font-weight:800;color:#d1fae5}
+.actions{margin-top:auto;display:flex;gap:8px}
+.btn{flex:1;text-align:center;text-decoration:none;border-radius:10px;padding:10px 12px;border:1px solid #334155}
+.btn.primary{background:#22c55e;color:#001b10;border-color:#22c55e}
+.btn.secondary{background:#0b1020;color:#e2e8f0}
+.features{border-top:1px solid #172554;border-bottom:1px solid #172554}
+.feature-list{list-style:none;padding:0;display:grid;gap:8px}
+.faq details{background:#0f172a;border:1px solid #1f2937;border-radius:12px;padding:12px;margin:8px 0}
+.contact a{color:#93c5fd}
+.site-footer{border-top:1px solid #172554;padding:16px 0;color:#94a3b8}
+.footer-inner{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+@media (max-width:600px){.nav{display:none}}
+"""
+
+app_js = """const grid = document.getElementById('grid');
+const search = document.getElementById('search');
+const category = document.getElementById('category');
+const billing = document.getElementById('billing');
+
+function formatPrice(price) {
+  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(price);
+}
+
+function computedPrice(p) {
+  if (billing.value === 'annuel') {
+    return Math.round((p.price_eur_month * 12) * 0.9 * 100) / 100;
+  } else {
+    return p.price_eur_month;
+  }
+}
+
+async function loadProducts() {
+  const res = await fetch('products.json');
+  const products = await res.json();
+  render(products);
+  [search, category, billing].forEach(el => el.addEventListener('input', () => render(products)));
+}
+
+function render(products) {
+  const q = search.value.trim().toLowerCase();
+  const cat = category.value;
+  grid.innerHTML = '';
+  products
+    .filter(p => (cat ? p.category === cat : true))
+    .filter(p => (q ? (p.name + ' ' + p.description + ' ' + p.features.join(' ')).toLowerCase().includes(q) : true))
+    .forEach(p => {
+      const price = computedPrice(p);
+      const unit = billing.value === 'annuel' ? '/an' : '/mois';
+      const payUrl = billing.value === 'annuel' ? (p.checkout_url_year || p.checkout_url) : p.checkout_url;
+      const card = document.createElement('article');
+      card.className = 'card';
+      card.innerHTML = \`
+        <div class="thumb">\${p.category}</div>
+        <div class="body">
+          <div class="badge">\${p.popular ? '⭐ Populaire' : 'Nouvelle offre'}</div>
+          <h3>\${p.name}</h3>
+          <div class="price">\${formatPrice(price)} <small>\${unit}</small></div>
+          <p>\${p.description}</p>
+          <ul>\${p.features.map(f => '<li>• ' + f + '</li>').join('')}</ul>
+          <div class="actions">
+            <a class="btn secondary" href="mailto:contact@mastaa-hosting.example?subject=Question%20sur%20' + encodeURIComponent(p.name) + '">Question</a>
+            <a class="btn primary" href="\${payUrl}" target="_blank" rel="noopener">Acheter</a>
+          </div>
+        </div>
+      \`;
+      grid.appendChild(card);
+    });
+  document.getElementById('year').textContent = new Date().getFullYear();
+}
+
+loadProducts();
+"""
+
+products = [
+  {
+    "sku": "SHARED-START",
+    "category": "Mutualisé",
+    "name": "Start 10 Go",
+    "description": "Idéal pour un petit site vitrine ou WordPress.",
+    "features": ["10 Go NVMe", "Bande passante illimitée", "1 site", "SSL gratuit", "Sauvegarde quotidienne"],
+    "price_eur_month": 2.99,
+    "popular": False,
+    "checkout_url": "https://your-stripe-payment-link.example/start-mensuel",
+    "checkout_url_year": "https://your-stripe-payment-link.example/start-annuel"
+  },
+  {
+    "sku": "SHARED-PRO",
+    "category": "Mutualisé",
+    "name": "Pro 50 Go",
+    "description": "Parfait pour sites professionnels à trafic moyen.",
+    "features": ["50 Go NVMe", "Trafic illimité", "5 sites", "cPanel", "Protection DDoS"],
+    "price_eur_month": 5.99,
+    "popular": True,
+    "checkout_url": "https://your-stripe-payment-link.example/pro-mensuel",
+    "checkout_url_year": "https://your-stripe-payment-link.example/pro-annuel"
+  },
+  {
+    "sku": "VPS-2G",
+    "category": "VPS",
+    "name": "VPS 2 vCPU / 2 Go",
+    "description": "VPS abordable pour projets, bots ou petits serveurs.",
+    "features": ["2 vCPU", "2 Go RAM", "40 Go NVMe", "1 IPv4", "Anti-DDoS"],
+    "price_eur_month": 7.99,
+    "popular": True,
+    "checkout_url": "https://your-stripe-payment-link.example/vps2g-mensuel",
+    "checkout_url_year": "https://your-stripe-payment-link.example/vps2g-annuel"
+  },
+  {
+    "sku": "VPS-4G",
+    "category": "VPS",
+    "name": "VPS 4 vCPU / 8 Go",
+    "description": "Puissance pour e‑commerce ou serveurs de jeux légers.",
+    "features": ["4 vCPU", "8 Go RAM", "120 Go NVMe", "1 IPv4", "Anti-DDoS"],
+    "price_eur_month": 14.99,
+    "popular": False,
+    "checkout_url": "https://your-stripe-payment-link.example/vps4g-mensuel",
+    "checkout_url_year": "https://your-stripe-payment-link.example/vps4g-annuel"
+  },
+  {
+    "sku": "DED-1",
+    "category": "Dédié",
+    "name": "Dédié Ryzen™",
+    "description": "Serveur dédié pour charges lourdes & virtualisation.",
+    "features": ["Ryzen 9", "64 Go RAM", "2x1 To NVMe", "1 Gbps", "IPMI"],
+    "price_eur_month": 59.0,
+    "popular": False,
+    "checkout_url": "https://your-stripe-payment-link.example/dedie-mensuel",
+    "checkout_url_year": "https://your-stripe-payment-link.example/dedie-annuel"
+  },
+  {
+    "sku": "DOM-1",
+    "category": "Nom de domaine",
+    "name": "Nom de domaine .com",
+    "description": "Enregistrement et gestion DNS inclus.",
+    "features": ["DNS managé", "WHOIS Privacy", "Renouvellement facile"],
+    "price_eur_month": 1.1,
+    "popular": False,
+    "checkout_url": "https://your-stripe-payment-link.example/domaine-com"
+  }
+]
+
+products_json = json.dumps(products, ensure_ascii=False, indent=2)
+
+readme = """# Boutique d’hébergement — GitHub Pages
+
+Ce dépôt contient une boutique **statique** prête à déployer sur **GitHub Pages**. Parfait pour vendre des offres d’hébergement (mutualisé, VPS, dédiés) sans back‑end.
+
+## 🚀 Déploiement rapide (5 minutes)
+
+1. Créez un **nouveau dépôt** sur GitHub (ex: `mastaa-hosting`).
+2. Uploadez tous les fichiers de ce dossier à la racine du dépôt.
+3. Allez dans **Settings → Pages** et choisissez **Deploy from branch**, branch `main`, dossier `/ (root)`. Enregistrez.
+4. Après le build, votre boutique sera disponible à l’URL donnée par GitHub Pages (ex: `https://<votre-user>.github.io/mastaa-hosting/`).
+
+> Astuce: si vous nommez le dépôt `<votre-user>.github.io`, le site sera directement à la racine.
+
+## 💳 Ajouter les paiements
+
+- Remplacez les champs `checkout_url` (et `checkout_url_year`) dans `products.json` par vos liens **Stripe Payment Links** ou **PayPal** (Bouton PayPal → “Lien de paiement”).
+- Option **e‑mail**: le bouton “Question” ouvre un mail prérempli. Vous pouvez remplacer l’adresse par la vôtre dans `app.js` et `index.html`.
+
+## 🛍️ Gérer les produits
+
+- Éditez `products.json` : chaque objet représente une offre.
+- `price_eur_month` est le prix mensuel TTC. Le prix annuel appliquera **–10%** automatiquement.
+- Les catégories reconnues: `Mutualisé`, `VPS`, `Dédié`, `Nom de domaine`. Vous pouvez en ajouter d’autres.
+
+## 🖼️ Personnalisation
+
+- Changez le logo dans `assets/logo.svg` et l’icône dans `assets/favicon.png`.
+- Modifiez les couleurs/typos dans `
+
+
+
+Aucun fichier n’a été sélectionnéAucun fichier n’a été sélectionné
+ChatGPT peut commettre des erreurs. Il est recommandé de vérifier les informations importantes. Voir les préférences en matière de cookies.
+ChatGPT est toujours en train de générer une réponse...
